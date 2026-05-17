@@ -11,17 +11,9 @@ const server = net.createServer((socket) => {
     console.log(`Jugador ${id} conectado`);
     players.set(id, { socket, name: playerName, x: 0, y: 0, z: 0 });
 
-    // Heartbeat cada 5 segundos
-const heartbeat = setInterval(() => {
-    try { socket.write('PING\n'); } catch(e) {}
-}, 5000);
-
-socket.on('close', () => {
-    clearInterval(heartbeat);
-    console.log(`${playerName} salio`);
-    players.delete(id);
-    broadcast(`CHAT|${playerName} salio del juego\n`, -1);
-});
+    const heartbeat = setInterval(() => {
+        try { socket.write('PING\n'); } catch(e) {}
+    }, 5000);
 
     socket.on('data', (data) => {
         const msg = data.toString().trim();
@@ -47,12 +39,16 @@ socket.on('close', () => {
     });
 
     socket.on('close', () => {
+        clearInterval(heartbeat);
         console.log(`${playerName} salio`);
         players.delete(id);
         broadcast(`CHAT|${playerName} salio del juego\n`, -1);
     });
 
-    socket.on('error', () => players.delete(id));
+    socket.on('error', () => {
+        clearInterval(heartbeat);
+        players.delete(id);
+    });
 });
 
 function broadcast(msg, excludeId) {
