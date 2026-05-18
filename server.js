@@ -42,6 +42,7 @@ const server = net.createServer((socket) => {
         clearInterval(heartbeat);
         console.log(`${playerName} salio`);
         players.delete(id);
+        broadcast(`QUIT|${id}\n`, -1);
         broadcast(`CHAT|${playerName} salio del juego\n`, -1);
     });
 
@@ -62,7 +63,11 @@ function broadcast(msg, excludeId) {
 function broadcastPos() {
     let msg = 'PLAYERS';
     players.forEach((p, pid) => {
-        msg += `|${pid}|${p.name}|${p.x}|${p.y}|${p.z}`;
+        // Si posicion es 0,0,0 usar Grove Street como default
+        let x = p.x || 2495.0;
+        let y = p.y || -1666.0;
+        let z = p.z || 13.3;
+        msg += `|${pid}|${p.name}|${x}|${y}|${z}`;
     });
     msg += '\n';
     players.forEach((p) => {
